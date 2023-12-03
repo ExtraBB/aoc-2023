@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use crate::Day;
 
@@ -19,15 +19,15 @@ struct Part {
 
 struct Schematic {
     parts: Vec<Part>,
-    symbol_map: HashSet<usize>,
-    height: usize,
+    symbol_map: HashMap<usize, char>,
+    width: usize,
 }
 
 fn parse_schematic(input: &str) -> Schematic {
     let mut parts: Vec<Part> = vec![];
-    let mut symbol_map: HashSet<usize> = HashSet::new();
+    let mut symbol_map: HashMap<usize, char> = HashMap::new();
     let lines: Vec<&str> = input.lines().collect();
-    let height = lines.len();
+    let width = lines[0].len();
 
     for (y, line) in lines.iter().enumerate() {
         let mut current_part: Vec<char> = vec![];
@@ -50,7 +50,7 @@ fn parse_schematic(input: &str) -> Schematic {
                 }
 
                 if char != '.' {
-                    symbol_map.insert(y * height + x);
+                    symbol_map.insert(y * width + x, char);
                 }
             }
         }
@@ -66,11 +66,11 @@ fn parse_schematic(input: &str) -> Schematic {
     return Schematic {
         parts,
         symbol_map,
-        height,
+        width,
     };
 }
 
-fn valid_part(part: &Part, schematic: &Schematic) -> bool {
+fn valid_part(part: &Part, validator: &dyn Fn(usize, usize) -> bool) -> bool {
     let min_x: usize = ((part.location.x as i32) - 1).max(0) as usize;
     let max_x: usize = (part.location.x + part.length) as usize;
     let min_y: usize = ((part.location.y as i32) - 1).max(0) as usize;
@@ -78,13 +78,49 @@ fn valid_part(part: &Part, schematic: &Schematic) -> bool {
 
     for x in min_x..max_x + 1 {
         for y in min_y..max_y + 1 {
-            if schematic.symbol_map.contains(&(y * schematic.height + x)) {
+            if validator(x, y) {
                 return true;
             }
         }
     }
 
     return false;
+}
+
+fn valid_part_2(part: &Part, validator: &dyn Fn(usize, usize) -> bool) -> bool {
+    let min_x: usize = part.location.x;
+    let max_x: usize = part.location.x + part.length;
+
+    for x in min_x..max_x {
+        if validator(x, part.location.y) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+fn find_gear_parts(location: &usize, schematic: &Schematic) -> u32 {
+    let gear_x = (location % schematic.width) as i32;
+    let gear_y = (location / schematic.width) as i32;
+
+    let adjacent_parts = schematic
+        .parts
+        .iter()
+        .filter(|part| {
+            valid_part_2(part, &|x, y| {
+                return ((x as i32 - gear_x) as i32).abs() <= 1
+                    && ((y as i32 - gear_y) as i32).abs() <= 1;
+            })
+        })
+        .collect::<Vec<&Part>>();
+
+    if adjacent_parts.len() == 2 {
+        return adjacent_parts[0].number.parse::<u32>().unwrap()
+            * adjacent_parts[1].number.parse::<u32>().unwrap();
+    }
+
+    return 0;
 }
 
 impl Day for Day3 {
@@ -94,14 +130,27 @@ impl Day for Day3 {
         return schematic
             .parts
             .iter()
-            .filter(|part| valid_part(part, &schematic))
+            .filter(|part| {
+                valid_part(part, &|x, y| {
+                    schematic
+                        .symbol_map
+                        .contains_key(&(y * schematic.width + x))
+                })
+            })
             .map(|part| part.number.parse::<u32>().unwrap())
             .sum::<u32>()
             .to_string();
     }
 
     fn part2(&self) -> String {
-        todo!();
+        let schematic = parse_schematic(self.input);
+        return schematic
+            .symbol_map
+            .iter()
+            .filter(|(_, char)| **char == '*')
+            .map(|(location, _)| find_gear_parts(location, &schematic))
+            .sum::<u32>()
+            .to_string();
     }
 }
 
