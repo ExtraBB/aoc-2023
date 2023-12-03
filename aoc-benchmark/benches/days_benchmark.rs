@@ -6,6 +6,7 @@ fn day1(c: &mut Criterion) {
         input: include_str!("../../data/1.in"),
     };
     c.bench_function("Day 1, Part 1", |b| b.iter(|| day.part1()));
+    c.bench_function("Day 1, Part 2", |b| b.iter(|| day.part2()));
 }
 
 criterion_group!(benches, day1);
