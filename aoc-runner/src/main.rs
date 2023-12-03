@@ -1,4 +1,4 @@
-use aoc_lib::{day1::Day1, day2::Day2, Day};
+use aoc_lib::{day1::Day1, day2::Day2, day3::Day3, Day};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -36,6 +36,13 @@ fn execute(day_number: u8, part: u8) {
         2 => execute_part(
             Day2 {
                 input: include_str!("../../data/2.in"),
+            },
+            day_number,
+            part,
+        ),
+        3 => execute_part(
+            Day3 {
+                input: include_str!("../../data/3.in"),
             },
             day_number,
             part,

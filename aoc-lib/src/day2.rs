@@ -47,7 +47,7 @@ impl Day for Day2 {
 }
 
 #[cfg(test)]
-mod day1tests {
+mod day2tests {
     use crate::{day2::Day2, Day};
 
     #[test]
