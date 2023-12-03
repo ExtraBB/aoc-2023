@@ -4,22 +4,9 @@ pub struct Day2 {
     pub input: &'static str,
 }
 
-fn calculate_part1_score(line: (usize, &str)) -> u32 {
-    let (red, green, blue) = parse_max_rgb(line.1);
-    return if red <= 12 && green <= 13 && blue <= 14 {
-        (line.0 + 1) as u32
-    } else {
-        0
-    };
-}
-
-fn calculate_part2_score(line: (usize, &str)) -> u32 {
-    let (red, green, blue) = parse_max_rgb(line.1);
-    return red * green * blue;
-}
-
-fn parse_max_rgb(line: &str) -> (u32, u32, u32) {
-    let (_, games) = line.split_once(": ").unwrap();
+fn parse_max_rgb(line: &str) -> (u32, u32, u32, u32) {
+    let (game_title, games) = line.split_once(": ").unwrap();
+    let (_, game_number) = game_title.split_once(" ").unwrap();
     let mut red: u32 = 0;
     let mut green: u32 = 0;
     let mut blue: u32 = 0;
@@ -35,26 +22,27 @@ fn parse_max_rgb(line: &str) -> (u32, u32, u32) {
         }
     }
 
-    return (red, green, blue);
+    return (game_number.parse::<u32>().unwrap(), red, green, blue);
 }
 
-fn run(input: &str, f: fn((usize, &str)) -> u32) -> String {
-    return input
-        .lines()
-        .into_iter()
-        .enumerate()
-        .map(f)
-        .sum::<u32>()
-        .to_string();
+fn calculate_score(input: &str, score_fn: fn((u32, u32, u32, u32)) -> u32) -> u32 {
+    return input.lines().map(parse_max_rgb).map(score_fn).sum::<u32>();
 }
 
 impl Day for Day2 {
     fn part1(&self) -> String {
-        return run(self.input, calculate_part1_score);
+        return calculate_score(self.input, |(index, r, g, b)| {
+            if r <= 12 && g <= 13 && b <= 14 {
+                index
+            } else {
+                0
+            }
+        })
+        .to_string();
     }
 
     fn part2(&self) -> String {
-        return run(self.input, calculate_part2_score);
+        return calculate_score(self.input, |(_, r, g, b)| r * g * b).to_string();
     }
 }
 
