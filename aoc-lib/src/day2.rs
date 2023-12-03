@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use regex::Regex;
 
 use crate::Day;
@@ -8,24 +7,23 @@ pub struct Day2 {
 }
 
 fn game_possible(game: &str, max_red: u32, max_green: u32, max_blue: u32) -> bool {
-    return parse_color(game, "red").iter().max().unwrap_or(&0) <= &max_red
-        && parse_color(game, "green").iter().max().unwrap_or(&0) <= &max_green
-        && parse_color(game, "blue").iter().max().unwrap_or(&0) <= &max_blue;
+    return parse_color(game, "red") <= max_red
+        && parse_color(game, "green") <= max_green
+        && parse_color(game, "blue") <= max_blue;
 }
 
 fn game_fewest(game: &str) -> u32 {
-    return parse_color(game, "red").iter().max().unwrap_or(&0)
-        * parse_color(game, "green").iter().max().unwrap_or(&0)
-        * parse_color(game, "blue").iter().max().unwrap_or(&0);
+    return parse_color(game, "red") * parse_color(game, "green") * parse_color(game, "blue");
 }
 
-fn parse_color(game: &str, color: &str) -> Vec<u32> {
+fn parse_color(game: &str, color: &str) -> u32 {
     let re = Regex::new(&format!(r"(\d+) {}", color)).unwrap();
     return re
         .captures_iter(game)
         .map(|capture| capture.extract())
         .map(|(_, [num])| num.parse::<u32>().unwrap())
-        .collect_vec();
+        .max()
+        .unwrap_or(0);
 }
 
 impl Day for Day2 {
