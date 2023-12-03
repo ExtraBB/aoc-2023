@@ -1,29 +1,37 @@
-use regex::Regex;
-
 use crate::Day;
 
 pub struct Day2 {
     pub input: &'static str,
 }
 
-fn game_possible(game: &str, max_red: u32, max_green: u32, max_blue: u32) -> bool {
-    return parse_color(game, "red") <= max_red
-        && parse_color(game, "green") <= max_green
-        && parse_color(game, "blue") <= max_blue;
+fn game_possible(line: &str, max_red: u32, max_green: u32, max_blue: u32) -> bool {
+    let (red, green, blue) = parse_max_rgb(line);
+    return red <= max_red && green <= max_green && blue <= max_blue;
 }
 
-fn game_fewest(game: &str) -> u32 {
-    return parse_color(game, "red") * parse_color(game, "green") * parse_color(game, "blue");
+fn game_fewest(line: &str) -> u32 {
+    let (red, green, blue) = parse_max_rgb(line);
+    return red * green * blue;
 }
 
-fn parse_color(game: &str, color: &str) -> u32 {
-    let re = Regex::new(&format!(r"(\d+) {}", color)).unwrap();
-    return re
-        .captures_iter(game)
-        .map(|capture| capture.extract())
-        .map(|(_, [num])| num.parse::<u32>().unwrap())
-        .max()
-        .unwrap_or(0);
+fn parse_max_rgb(line: &str) -> (u32, u32, u32) {
+    let (_, games) = line.split_once(": ").unwrap();
+    let mut red: u32 = 0;
+    let mut green: u32 = 0;
+    let mut blue: u32 = 0;
+
+    for game in games.split("; ") {
+        for item in game.split(", ") {
+            match item.split_once(" ").unwrap() {
+                (num, "red") => red = red.max(num.parse::<u32>().unwrap()),
+                (num, "green") => green = green.max(num.parse::<u32>().unwrap()),
+                (num, "blue") => blue = blue.max(num.parse::<u32>().unwrap()),
+                _ => panic!("invalid color"),
+            }
+        }
+    }
+
+    return (red, green, blue);
 }
 
 impl Day for Day2 {
@@ -34,7 +42,7 @@ impl Day for Day2 {
             .into_iter()
             .enumerate()
             .map(|(index, line)| {
-                if line.split(";").all(|game| game_possible(game, 12, 13, 14)) {
+                if game_possible(line, 12, 13, 14) {
                     return (index + 1) as u32;
                 }
 
